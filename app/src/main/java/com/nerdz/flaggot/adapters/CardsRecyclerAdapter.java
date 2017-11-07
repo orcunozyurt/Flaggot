@@ -1,8 +1,12 @@
 package com.nerdz.flaggot.adapters;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,9 +19,12 @@ import android.widget.ViewFlipper;
 
 import com.bumptech.glide.GenericRequestBuilder;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.Transformation;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.model.StreamEncoder;
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
 import com.bumptech.glide.load.resource.file.FileToStreamDecoder;
+import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.caverock.androidsvg.SVG;
 import com.nerdz.flaggot.R;
 import com.nerdz.flaggot.models.Country;
@@ -29,12 +36,15 @@ import com.nerdz.flaggot.utils.SvgSoftwareLayerSetter;
 import java.io.InputStream;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdapter.ViewHolder> {
     private static final String TAG = "CardsRecyclerAdapter";
     private final Context context;
     private List<Country> mDataSet;
     private GenericRequestBuilder<Uri, InputStream, SVG, PictureDrawable> requestBuilder;
+
 
 
     public CardsRecyclerAdapter(List<Country> data, Context context) {
@@ -64,10 +74,19 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        Log.d(TAG, "onBindViewHolder: "+ mDataSet.get(position).getFlag());
-        getFlagImage(holder.firstChildImageView,getItem(position).getFlag());
+        getFlagImage(holder.firstChildImageView, holder.secondChildImageView,
+                getItem(position).getFlag());
+
         holder.firstChildTitle.setText(getItem(position).getName());
         holder.firstChildDesc.setText(getItem(position).getCapital());
+        holder.secondChildTitle.setText(getItem(position).getName());
+
+        Resources res = context.getResources();
+        String secondChildDesc = String.format(res.getString(R.string.second_child_desc_schema),
+                getItem(position).getNativeName(), getItem(position).getRegion(),
+                getItem(position).getSubregion(),getItem(position).getCioc(),
+                getItem(position).getLanguages().get(0).getName());
+        holder.secondChildDesc.setText(secondChildDesc);
 
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -104,7 +123,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
         private TextView firstChildTitle;
         private TextView firstChildDesc;
         private CardView secondChildCardView;
-        private ImageView secondChildImageView;
+        private CircleImageView secondChildImageView;
         private TextView secondChildTitle;
         private TextView secondChildDesc;
         private CardView thirdChildCardView;
@@ -121,7 +140,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
             firstChildTitle = (TextView) view.findViewById(R.id.first_child_title);
             firstChildDesc = (TextView) view.findViewById(R.id.first_child_desc);
             secondChildCardView = (CardView) view.findViewById(R.id.second_child_card_view);
-            secondChildImageView = (ImageView) view.findViewById(R.id.second_child_image_view);
+            secondChildImageView = (CircleImageView) view.findViewById(R.id.second_child_image_view);
             secondChildTitle = (TextView) view.findViewById(R.id.second_child_title);
             secondChildDesc = (TextView) view.findViewById(R.id.second_child_desc);
             thirdChildCardView = (CardView) view.findViewById(R.id.third_child_card_view);
@@ -133,7 +152,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
 
     }
 
-    private void getFlagImage(ImageView flagImageView, String url) {
+    private void getFlagImage(ImageView flagImageView, final ImageView infoImageView, String url) {
         requestBuilder = Glide.with(context)
                 .using(Glide.buildStreamModelLoader(Uri.class, context), InputStream.class)
                 .from(Uri.class)
@@ -154,6 +173,11 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
                 .load(uri)
                 .into(flagImageView);
 
+        requestBuilder
+                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                // SVG cannot be serialized so it's not worth to cache it
+                .load(uri)
+                .into(infoImageView);
 
     }
 
