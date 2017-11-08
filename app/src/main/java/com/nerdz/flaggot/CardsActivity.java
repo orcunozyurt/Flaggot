@@ -1,11 +1,17 @@
 package com.nerdz.flaggot;
 
+import android.content.DialogInterface;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.nerdz.flaggot.adapters.CardsRecyclerAdapter;
 import com.nerdz.flaggot.models.Country;
@@ -19,12 +25,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class CardsActivity extends AppCompatActivity {
+public class CardsActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
     private RESTCountriesService mService;
     private RecyclerView cardsRecyclerView;
     private CardsRecyclerAdapter mAdapter;
-    private List<Country> countryList  = new ArrayList<>();;
+    private static List<Country> countryList  = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,20 +69,66 @@ public class CardsActivity extends AppCompatActivity {
                 if(response.isSuccessful()) {
                     //Log.d(getLocalClassName(), "onResponse: "+ response.body());
                     countryList = response.body();
-                    Log.d(getLocalClassName(), "onResponse: Length:"+countryList.size() + " first:"+countryList.get(0).getName());
                     mAdapter.updateCountries(countryList);
                 }else {
                     int statusCode  = response.code();
-                    // handle request errors depending on status code
+                    if (statusCode != 200){
+                        showErrorDialog();
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<List<Country>> call, Throwable t) {
-                //showErrorMessage();
-                Log.d("MainActivity", "error loading from API");
+                showErrorDialog();
 
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(this);
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                mAdapter.updateCountries(countryList);
+                return false;
+            }
+        });
+
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        mAdapter.filter(query);
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        mAdapter.filter(query);
+        return true;
+    }
+
+    private void showErrorDialog(){
+        AlertDialog.Builder builder =
+                new AlertDialog.Builder(CardsActivity.this, R.style.AppCompatAlertDialogStyle);
+        builder.setTitle(getResources().getString(R.string.ohsnap));
+        builder.setMessage(getResources().getString(R.string.smthwentwrong));
+        builder.setPositiveButton(getResources().getString(R.string.retry), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                loadCountries();
+            }
+        });
+        builder.setNegativeButton(getResources().getString(R.string.cancel), null);
+        builder.show();
     }
 }

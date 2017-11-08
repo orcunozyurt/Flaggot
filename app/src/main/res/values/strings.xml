@@ -4,4 +4,9 @@
     <string name="Map">Map</string>
     <string name="Quiz">QUIZ</string>
     <string name="second_child_desc_schema">%1$s \n%2$s \n%3$s \n%4$s \n%5$s</string>
+    <string name="search_hint">Search by name..</string>
+    <string name="ohsnap">OH SNAP!</string>
+    <string name="smthwentwrong">Something went wrong while trying to show you the maps. Check your connection and retry again please :(</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
 </resources>

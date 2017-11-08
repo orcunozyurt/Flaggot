@@ -34,6 +34,7 @@ import com.nerdz.flaggot.utils.SvgDrawableTranscoder;
 import com.nerdz.flaggot.utils.SvgSoftwareLayerSetter;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -43,6 +44,8 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
     private static final String TAG = "CardsRecyclerAdapter";
     private final Context context;
     private List<Country> mDataSet;
+    private List<Country> mDataSetCopy;
+
     private GenericRequestBuilder<Uri, InputStream, SVG, PictureDrawable> requestBuilder;
 
 
@@ -50,15 +53,34 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
     public CardsRecyclerAdapter(List<Country> data, Context context) {
         this.mDataSet = data;
         this.context = context;
+        mDataSetCopy = new ArrayList<>();
     }
 
     public void updateCountries(List<Country> items) {
         mDataSet = items;
+        if(mDataSetCopy.size() == 0)
+            mDataSetCopy.addAll(mDataSet);
         notifyDataSetChanged();
     }
 
     private Country getItem(int adapterPosition) {
         return mDataSet.get(adapterPosition);
+    }
+
+    public void filter(String text) {
+        mDataSet.clear();
+        if(text.isEmpty()){
+            mDataSet.addAll(mDataSetCopy);
+        } else{
+            text = text.toLowerCase();
+            for(Country item: mDataSetCopy){
+                if(item.getName().toLowerCase().contains(text) || item.getNativeName().toLowerCase().contains(text)){
+                    mDataSet.add(item);
+                }
+            }
+        }
+
+        updateCountries(mDataSet);
     }
 
 
