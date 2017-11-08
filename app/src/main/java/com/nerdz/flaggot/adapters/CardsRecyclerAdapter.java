@@ -148,10 +148,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
         private CircleImageView secondChildImageView;
         private TextView secondChildTitle;
         private TextView secondChildDesc;
-        private CardView thirdChildCardView;
-        private ImageView thirdChildImageView;
-        private TextView thirdChildTitle;
-        private TextView thirdChildDesc;
+        
 
         public ViewHolder(View view) {
             super(view);
@@ -165,10 +162,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
             secondChildImageView = (CircleImageView) view.findViewById(R.id.second_child_image_view);
             secondChildTitle = (TextView) view.findViewById(R.id.second_child_title);
             secondChildDesc = (TextView) view.findViewById(R.id.second_child_desc);
-            thirdChildCardView = (CardView) view.findViewById(R.id.third_child_card_view);
-            thirdChildImageView = (ImageView) view.findViewById(R.id.third_child_image_view);
-            thirdChildTitle = (TextView) view.findViewById(R.id.third_child_title);
-            thirdChildDesc = (TextView) view.findViewById(R.id.third_child_desc);
+
         }
 
 
