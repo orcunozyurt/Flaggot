@@ -17,8 +17,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CardsActivity">
-
+        <activity android:name=".CardsActivity"></activity>
+        <activity
+            android:name=".QuizActivity"
+            android:label="@string/title_activity_quiz"
+            android:parentActivityName=".OnboardActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.nerdz.flaggot.OnboardActivity" />
         </activity>
     </application>
 

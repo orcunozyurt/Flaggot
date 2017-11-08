@@ -9,4 +9,7 @@
     <string name="smthwentwrong">Something went wrong while trying to show you the maps. Check your connection and retry again please :(</string>
     <string name="retry">Retry</string>
     <string name="cancel">Cancel</string>
+    <string name="title_activity_quiz">Quiz Time</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

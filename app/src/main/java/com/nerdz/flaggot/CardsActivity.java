@@ -1,5 +1,6 @@
 package com.nerdz.flaggot;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
@@ -17,6 +18,7 @@ import com.nerdz.flaggot.adapters.CardsRecyclerAdapter;
 import com.nerdz.flaggot.models.Country;
 import com.nerdz.flaggot.services.RESTCountriesService;
 import com.nerdz.flaggot.utils.ApiUtils;
+import com.nerdz.flaggot.utils.MyCustomProgressDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ public class CardsActivity extends AppCompatActivity implements SearchView.OnQue
     private RESTCountriesService mService;
     private RecyclerView cardsRecyclerView;
     private CardsRecyclerAdapter mAdapter;
+    private ProgressDialog pDialog;
     private static List<Country> countryList  = new ArrayList<>();
 
 
@@ -48,6 +51,8 @@ public class CardsActivity extends AppCompatActivity implements SearchView.OnQue
         cardsRecyclerView.setLayoutManager(mLayoutManager);
         cardsRecyclerView.setItemAnimator(new DefaultItemAnimator());
         cardsRecyclerView.setAdapter(mAdapter);
+        pDialog = MyCustomProgressDialog.ctor(this,R.style.ProgressDialog);
+        pDialog.show();
         loadCountries();
     }
 
@@ -66,6 +71,9 @@ public class CardsActivity extends AppCompatActivity implements SearchView.OnQue
             @Override
             public void onResponse(Call<List<Country>> call, Response<List<Country>> response) {
 
+                pDialog.hide();
+                pDialog.dismiss();
+
                 if(response.isSuccessful()) {
                     //Log.d(getLocalClassName(), "onResponse: "+ response.body());
                     countryList = response.body();
@@ -80,6 +88,8 @@ public class CardsActivity extends AppCompatActivity implements SearchView.OnQue
 
             @Override
             public void onFailure(Call<List<Country>> call, Throwable t) {
+                pDialog.hide();
+                pDialog.dismiss();
                 showErrorDialog();
 
             }

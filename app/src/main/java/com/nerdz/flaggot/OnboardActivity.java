@@ -13,6 +13,7 @@ public class OnboardActivity extends AppCompatActivity implements View.OnClickLi
         setContentView(R.layout.activity_onboard);
 
         findViewById(R.id.buttonCards).setOnClickListener(this);
+        findViewById(R.id.buttonQuiz).setOnClickListener(this);
     }
 
     @Override
@@ -23,6 +24,11 @@ public class OnboardActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.buttonCards:
                 Intent cardsIntent = new Intent(this, CardsActivity.class);
                 startActivity(cardsIntent);
+                break;
+            case R.id.buttonQuiz:
+                Intent quizIntent = new Intent(this, QuizActivity.class);
+                startActivity(quizIntent);
+                break;
         }
 
     }
