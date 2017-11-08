@@ -148,7 +148,7 @@ public class CardsRecyclerAdapter extends RecyclerView.Adapter<CardsRecyclerAdap
         private CircleImageView secondChildImageView;
         private TextView secondChildTitle;
         private TextView secondChildDesc;
-        
+
 
         public ViewHolder(View view) {
             super(view);
