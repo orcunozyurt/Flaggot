@@ -9,6 +9,7 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
 import android.support.v13.app.FragmentPagerAdapter;
@@ -27,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.GenericRequestBuilder;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -167,6 +169,7 @@ public class QuizActivity extends Activity {
         private FButton choiceTwoButton;
         private FButton choiceThreeButton;
         private FButton choiceFourButton;
+        private LottieAnimationView animationView;
 
         public PlaceholderFragment() {
         }
@@ -194,7 +197,9 @@ public class QuizActivity extends Activity {
             choiceThreeButton = (FButton) rootView.findViewById(R.id.choice_three_button);
             choiceFourButton = (FButton) rootView.findViewById(R.id.choice_four_button);
 
-            Question mQuestion = getArguments().getParcelable(ARG_QUESTION);
+            animationView = (LottieAnimationView) rootView.findViewById(R.id.animation_view);
+
+            final Question mQuestion = getArguments().getParcelable(ARG_QUESTION);
 
             List<String> optionsList = new ArrayList<>();
             optionsList.add(mQuestion.getAnswer());
@@ -207,6 +212,59 @@ public class QuizActivity extends Activity {
             choiceTwoButton.setText(optionsList.get(1));
             choiceThreeButton.setText(optionsList.get(2));
             choiceFourButton.setText(optionsList.get(3));
+
+            choiceOneButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if(choiceOneButton.getText().toString().equalsIgnoreCase(mQuestion.getAnswer())){
+                        correctAnswer();
+                    }
+                    else{
+                        wrongAnswer();
+                    }
+
+                }
+            });
+            choiceTwoButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if(choiceTwoButton.getText().toString().equalsIgnoreCase(mQuestion.getAnswer())){
+                        correctAnswer();
+                    }
+                    else{
+                        wrongAnswer();
+                    }
+
+                }
+            });
+            choiceThreeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if(choiceThreeButton.getText().toString().equalsIgnoreCase(mQuestion.getAnswer())){
+                        correctAnswer();
+                    }
+                    else{
+                        wrongAnswer();
+                    }
+
+                }
+            });
+            choiceFourButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if(choiceFourButton.getText().toString().equalsIgnoreCase(mQuestion.getAnswer())){
+                        correctAnswer();
+                    }
+                    else{
+                        wrongAnswer();
+                    }
+
+                }
+            });
 
             getFlagImage(firstChildImageView,mQuestion.getFlagURL());
 
@@ -238,8 +296,23 @@ public class QuizActivity extends Activity {
 
         }
 
+        public void correctAnswer(){
 
+            firstChildCardView.setVisibility(View.INVISIBLE);
+            animationView.setAnimation("emoji_wink.json");
+            animationView.loop(false);
+            animationView.playAnimation();
 
+        }
+
+        public void wrongAnswer(){
+
+            firstChildCardView.setVisibility(View.INVISIBLE);
+            animationView.setAnimation("emoji_shock.json");
+            animationView.loop(false);
+            animationView.playAnimation();
+
+        }
 
     }
 
