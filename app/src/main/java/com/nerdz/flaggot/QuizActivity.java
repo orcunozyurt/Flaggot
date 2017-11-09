@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nerdz.flaggot.models.Country;
+import com.nerdz.flaggot.models.Question;
 import com.nerdz.flaggot.services.RESTCountriesService;
 import com.nerdz.flaggot.utils.ApiUtils;
 import com.nerdz.flaggot.utils.MyCustomProgressDialog;
@@ -31,6 +32,7 @@ import com.nerdz.flaggot.utils.MyCustomProgressDialog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import info.hoang8f.widget.FButton;
 import retrofit2.Call;
@@ -56,6 +58,8 @@ public class QuizActivity extends Activity {
     private List<Country> countryList  = new ArrayList<>();
     private ProgressDialog pDialog;
     private RESTCountriesService mService;
+    private List<Question> mQuestionsList = new ArrayList<>();
+    private List<String> mChoicesList = new ArrayList<>();
 
 
     @Override
@@ -89,8 +93,7 @@ public class QuizActivity extends Activity {
                 if(response.isSuccessful()) {
                     //Log.d(getLocalClassName(), "onResponse: "+ response.body());
                     countryList = response.body();
-                    //create question objects and use them in fragment
-                    Collections.shuffle(countryList);
+                    prepareQuestions(countryList);
                     mSectionsPagerAdapter.updateAdapter(countryList);
                 }else {
                     int statusCode  = response.code();
@@ -216,6 +219,55 @@ public class QuizActivity extends Activity {
             }
             return null;
         }
+    }
+
+    private List<Question> prepareQuestions (List<Country> mCountries){
+        Collections.shuffle(mCountries);
+        List<Question> initialQuestions = prepareInitialQuestions(mCountries);
+
+    }
+    private List<String> preparePossibleChoices (List<Country> mCountries){
+        List<String> initialQuestions = prepareInitialQuestions(mCountries);
+
+    }
+
+    private Boolean isGoodCandidate(Question initialquestion, String choiceCandidate){
+
+        if (initialquestion.getChoiceOne() != null && initialquestion.getChoiceTwo() != null &&
+                initialquestion.getChoiceThree() != null){
+
+            return false;
+        }
+
+        if(initialquestion.getAnswer().equalsIgnoreCase(choiceCandidate) ){
+            return false;
+        }
+
+        if((initialquestion.getChoiceOne() !=null && initialquestion.getChoiceOne().equalsIgnoreCase(choiceCandidate)) ||
+                (initialquestion.getChoiceTwo() !=null && initialquestion.getChoiceOne().equalsIgnoreCase(choiceCandidate)) ||
+                (initialquestion.getChoiceThree() !=null && initialquestion.getChoiceOne().equalsIgnoreCase(choiceCandidate))){
+
+            return false;
+        }
+
+        return true;
+
+
+    }
+
+    private List<Question> prepareInitialQuestions(List<Country> mCountries){
+
+        Collections.shuffle(mCountries);
+
+        for(Country country : mCountries){
+
+            Question question = new Question(country.getFlag(),country.getName());
+            mQuestionsList.add(question);
+        }
+
+        return mQuestionsList;
+
+
     }
 
     private void showErrorDialog(){

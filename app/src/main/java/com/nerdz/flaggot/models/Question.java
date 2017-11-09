@@ -11,11 +11,16 @@ public class Question {
     private String choiceThree;
     private String answer;
 
-    public Question(String flagURL, String choiceOne, String choiceTwo, String choiceThree, String answer) {
+    public Question(String flagURL, String answer, String choiceOne, String choiceTwo, String choiceThree) {
         this.flagURL = flagURL;
         this.choiceOne = choiceOne;
         this.choiceTwo = choiceTwo;
         this.choiceThree = choiceThree;
+        this.answer = answer;
+    }
+
+    public Question(String flagURL, String answer) {
+        this.flagURL = flagURL;
         this.answer = answer;
     }
 
