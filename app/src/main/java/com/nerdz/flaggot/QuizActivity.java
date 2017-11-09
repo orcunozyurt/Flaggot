@@ -9,11 +9,14 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.graphics.drawable.PictureDrawable;
+import android.net.Uri;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,12 +26,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+
+import com.bumptech.glide.GenericRequestBuilder;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.model.StreamEncoder;
+import com.bumptech.glide.load.resource.file.FileToStreamDecoder;
+import com.caverock.androidsvg.SVG;
 import com.nerdz.flaggot.models.Country;
 import com.nerdz.flaggot.models.Question;
 import com.nerdz.flaggot.services.RESTCountriesService;
 import com.nerdz.flaggot.utils.ApiUtils;
 import com.nerdz.flaggot.utils.MyCustomProgressDialog;
+import com.nerdz.flaggot.utils.SvgDecoder;
+import com.nerdz.flaggot.utils.SvgDrawableTranscoder;
+import com.nerdz.flaggot.utils.SvgSoftwareLayerSetter;
 
+
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,6 +77,7 @@ public class QuizActivity extends Activity {
     private List<String> mChoicesList = new ArrayList<>();
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +85,7 @@ public class QuizActivity extends Activity {
         mService = ApiUtils.getSOService();
 
 
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager(), countryList);
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager(), mQuestionsList);
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -82,6 +98,8 @@ public class QuizActivity extends Activity {
 
     }
 
+
+
     public void loadCountries() {
         mService.getAllCountries().enqueue(new Callback<List<Country>>() {
             @Override
@@ -93,8 +111,9 @@ public class QuizActivity extends Activity {
                 if(response.isSuccessful()) {
                     //Log.d(getLocalClassName(), "onResponse: "+ response.body());
                     countryList = response.body();
-                    prepareQuestions(countryList);
-                    mSectionsPagerAdapter.updateAdapter(countryList);
+                    List<Question> completeQuestionsList = prepareQuestions(countryList);
+                    Log.d(getLocalClassName(), "onResponse: " + completeQuestionsList);
+                    mSectionsPagerAdapter.updateAdapter(completeQuestionsList);
                 }else {
                     int statusCode  = response.code();
                     if (statusCode != 200){
@@ -141,7 +160,7 @@ public class QuizActivity extends Activity {
      */
     public static class PlaceholderFragment extends Fragment {
 
-        private static final String ARG_SECTION_NUMBER = "section_number";
+        private static final String ARG_QUESTION = "question";
         private CardView firstChildCardView;
         private ImageView firstChildImageView;
         private FButton choiceOneButton;
@@ -156,10 +175,10 @@ public class QuizActivity extends Activity {
          * Returns a new instance of this fragment for the given section
          * number.
          */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
+        public static PlaceholderFragment newInstance(Question q) {
             PlaceholderFragment fragment = new PlaceholderFragment();
             Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+            args.putParcelable(ARG_QUESTION, q);
             fragment.setArguments(args);
             return fragment;
         }
@@ -174,8 +193,54 @@ public class QuizActivity extends Activity {
             choiceTwoButton = (FButton) rootView.findViewById(R.id.choice_two_button);
             choiceThreeButton = (FButton) rootView.findViewById(R.id.choice_three_button);
             choiceFourButton = (FButton) rootView.findViewById(R.id.choice_four_button);
+
+            Question mQuestion = getArguments().getParcelable(ARG_QUESTION);
+
+            List<String> optionsList = new ArrayList<>();
+            optionsList.add(mQuestion.getAnswer());
+            optionsList.add(mQuestion.getChoiceOne());
+            optionsList.add(mQuestion.getChoiceTwo());
+            optionsList.add(mQuestion.getChoiceThree());
+            Collections.shuffle(optionsList);
+
+            choiceOneButton.setText(optionsList.get(0));
+            choiceTwoButton.setText(optionsList.get(1));
+            choiceThreeButton.setText(optionsList.get(2));
+            choiceFourButton.setText(optionsList.get(3));
+
+            getFlagImage(firstChildImageView,mQuestion.getFlagURL());
+
             return rootView;
         }
+
+        public void getFlagImage(ImageView flagImageView, String url) {
+            GenericRequestBuilder<Uri, InputStream, SVG, PictureDrawable> requestBuilder;
+
+            requestBuilder = Glide.with(this)
+                    .using(Glide.buildStreamModelLoader(Uri.class,this.getActivity()), InputStream.class)
+                    .from(Uri.class)
+                    .as(SVG.class)
+                    .transcode(new SvgDrawableTranscoder(), PictureDrawable.class)
+                    .sourceEncoder(new StreamEncoder())
+                    .cacheDecoder(new FileToStreamDecoder<SVG>(new SvgDecoder()))
+                    .decoder(new SvgDecoder())
+                    .placeholder(R.drawable.image_loading)
+                    .error(R.drawable.image_error)
+                    .animate(android.R.anim.fade_in)
+                    .listener(new SvgSoftwareLayerSetter<Uri>());
+
+            Uri uri = Uri.parse(url);
+            requestBuilder
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    // SVG cannot be serialized so it's not worth to cache it
+                    .load(uri)
+                    .into(flagImageView);
+
+        }
+
+
+
+
     }
 
     /**
@@ -183,13 +248,13 @@ public class QuizActivity extends Activity {
      * one of the sections/tabs/pages.
      */
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        private List<Country> mData;
+        private List<Question> mData;
 
-        public SectionsPagerAdapter(FragmentManager fm, List<Country> data) {
+        public SectionsPagerAdapter(FragmentManager fm, List<Question> data) {
             super(fm);
             this.mData = data;
         }
-        public void updateAdapter(List<Country> items) {
+        public void updateAdapter(List<Question> items) {
             mData = items;
             notifyDataSetChanged();
         }
@@ -198,7 +263,7 @@ public class QuizActivity extends Activity {
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            return PlaceholderFragment.newInstance(mData.get(position));
         }
 
         @Override
@@ -224,11 +289,34 @@ public class QuizActivity extends Activity {
     private List<Question> prepareQuestions (List<Country> mCountries){
         Collections.shuffle(mCountries);
         List<Question> initialQuestions = prepareInitialQuestions(mCountries);
+        List<String> initialChoices = preparePossibleChoices(mCountries);
+
+        Random rand = new Random();
+
+        for (Question question : initialQuestions){
+
+            while ( question.isComplete() == false){
+
+                int randomindex = rand.nextInt(initialChoices.size());
+                String candidateChoice = initialChoices.get(randomindex);
+                if(isGoodCandidate(question, candidateChoice)){
+                    question.addChoice(candidateChoice);
+                }
+
+            }
+        }
+
+        return initialQuestions;
 
     }
     private List<String> preparePossibleChoices (List<Country> mCountries){
-        List<String> initialQuestions = prepareInitialQuestions(mCountries);
+        List<String> possibleChoices = new ArrayList<>();
 
+        for (Country country : mCountries){
+            possibleChoices.add(country.getName().toLowerCase());
+        }
+
+        return possibleChoices;
     }
 
     private Boolean isGoodCandidate(Question initialquestion, String choiceCandidate){
@@ -261,7 +349,7 @@ public class QuizActivity extends Activity {
 
         for(Country country : mCountries){
 
-            Question question = new Question(country.getFlag(),country.getName());
+            Question question = new Question(country.getFlag(),country.getName().toLowerCase());
             mQuestionsList.add(question);
         }
 
