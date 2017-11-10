@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Flaggot</string>
-    <string name="Cards">cards</string>
+    <string name="Cards">Flags</string>
     <string name="Map">Map</string>
     <string name="Quiz">QUIZ</string>
     <string name="second_child_desc_schema">%1$s \n%2$s \n%3$s \n%4$s \n%5$s</string>

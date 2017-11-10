@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.drawable.PictureDrawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ import com.nerdz.flaggot.models.Question;
 import com.nerdz.flaggot.services.RESTCountriesService;
 import com.nerdz.flaggot.utils.ApiUtils;
 import com.nerdz.flaggot.utils.MyCustomProgressDialog;
+import com.nerdz.flaggot.utils.NonSwipeableViewPager;
 import com.nerdz.flaggot.utils.SvgDecoder;
 import com.nerdz.flaggot.utils.SvgDrawableTranscoder;
 import com.nerdz.flaggot.utils.SvgSoftwareLayerSetter;
@@ -71,12 +73,13 @@ public class QuizActivity extends Activity {
     /**
      * The {@link ViewPager} that will host the section contents.
      */
-    private ViewPager mViewPager;
+    private NonSwipeableViewPager mViewPager;
     private List<Country> countryList  = new ArrayList<>();
     private ProgressDialog pDialog;
     private RESTCountriesService mService;
     private List<Question> mQuestionsList = new ArrayList<>();
-    private List<String> mChoicesList = new ArrayList<>();
+    private int mScore = 0;
+    private int mFalseCount = 0;
 
 
 
@@ -90,13 +93,33 @@ public class QuizActivity extends Activity {
         mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager(), mQuestionsList);
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager = (NonSwipeableViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         pDialog = MyCustomProgressDialog.ctor(this,R.style.ProgressDialog);
         pDialog.show();
         loadCountries();
 
+
+    }
+
+    public void nextQuestion(Boolean isCorrectAnswer){
+        if(isCorrectAnswer){
+            mScore +=1;
+            mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+        }else {
+            mFalseCount +=1;
+            if( mFalseCount >= 3){
+
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("result",mScore);
+                setResult(Activity.RESULT_OK,returnIntent);
+                finish();
+
+            }else{
+                mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+            }
+        }
 
     }
 
@@ -170,6 +193,7 @@ public class QuizActivity extends Activity {
         private FButton choiceThreeButton;
         private FButton choiceFourButton;
         private LottieAnimationView animationView;
+
 
         public PlaceholderFragment() {
         }
@@ -303,6 +327,19 @@ public class QuizActivity extends Activity {
             animationView.loop(false);
             animationView.playAnimation();
 
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ((QuizActivity) getActivity()).nextQuestion(true);
+                }
+            }, 2000);
+
+
+
+
+
+
         }
 
         public void wrongAnswer(){
@@ -311,6 +348,15 @@ public class QuizActivity extends Activity {
             animationView.setAnimation("emoji_shock.json");
             animationView.loop(false);
             animationView.playAnimation();
+
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ((QuizActivity) getActivity()).nextQuestion(false);
+                }
+            }, 2000);
 
         }
 
