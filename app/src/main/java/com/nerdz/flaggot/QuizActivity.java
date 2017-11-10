@@ -105,8 +105,17 @@ public class QuizActivity extends Activity {
 
     public void nextQuestion(Boolean isCorrectAnswer){
         if(isCorrectAnswer){
-            mScore +=1;
-            mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+            if(mScore < mQuestionsList.size()-1) {
+                mScore += 1;
+                mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
+            }else {
+                //ALL CORRECT WOW!
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra("result",mScore);
+                setResult(Activity.RESULT_OK,returnIntent);
+                finish();
+
+            }
         }else {
             mFalseCount +=1;
             if( mFalseCount >= 3){

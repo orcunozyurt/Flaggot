@@ -17,6 +17,7 @@
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
+
     <style name="ProgressDialog">
         <item name="android:windowFrame">@null</item>
         <item name="android:windowBackground">@android:color/transparent</item>
